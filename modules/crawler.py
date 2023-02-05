@@ -18,8 +18,11 @@ def get_random_idiom():
     idiom_desc = soup_2.select_one('#row_mean').getText().split('釋　　義')[-1]
     idiom_phonet_raw = soup_2.select('#row_mean nobr')
     idiom_phonet = ''
-    for i in idiom_phonet_raw:
-        idiom_phonet += f'`{i.getText()}` '
+    for item in idiom_phonet_raw:
+        if '變' in item.getText():
+            idiom_phonet += '／ '
+        else:
+            idiom_phonet += f'`{item.getText()}` '
     idiom_story = soup_2.select_one(
         '#row_annotate').getText().replace('典故說明', '', 1)
 
@@ -66,21 +69,18 @@ def get_random_fun_image():
     response_2 = requests.get(
         f'https://hornydragon.blogspot.com/search?q=%E9%9B%9C%E4%B8%83%E9%9B%9C%E5%85%AB%E7%9F%AD%E7%AF%87%E6%BC%AB%E7%95%AB%E7%BF%BB%E8%AD%AF{target_post}')
     soup_2 = BeautifulSoup(response_2.text, "html.parser")
+    target_post_url = soup_2.select_one('.post-outer a').get('href')
 
     # 取上一步搜尋結果第一項
-    response_3 = requests.get(
-        soup_2.select_one('.post-outer a').get('href'))
+    response_3 = requests.get(target_post_url)
     soup_3 = BeautifulSoup(response_3.text, "html.parser")
 
     # 在文章內隨機選擇一張圖
     fun_images = soup_3.select('.post-body img')
     random_fun_image = fun_images[random.randint(
         0, len(fun_images) - 1)].get('src')
-    image_ext = random_fun_image.split('.')[-1]
-    if len(image_ext) > 4:
-        image_ext = 'png'
 
     if random_fun_image.startswith('/'):
         random_fun_image = f'https:{random_fun_image}'
 
-    return {'source': f'雜七雜八短篇漫畫翻譯{target_post}', 'image': random_fun_image, 'file_extension': image_ext}
+    return {'source': f'雜七雜八短篇漫畫翻譯{target_post}', 'source_url': target_post_url, 'image': random_fun_image}
