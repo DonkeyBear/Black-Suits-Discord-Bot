@@ -29,6 +29,39 @@ def get_random_idiom():
     return {'title': idiom_title, 'desc': idiom_desc, 'url': idiom_url, 'phonet': idiom_phonet, 'story': idiom_story}
 
 
+def get_search_idiom(keyword):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0'}
+    # 以關鍵字搜尋成語
+    url_1 = f'https://dict.idioms.moe.edu.tw/idiomList.jsp?idiom={keyword}'
+    response_1 = requests.get(url_1, headers=headers)
+    soup_1 = BeautifulSoup(response_1.text, "html.parser")
+    # 取搜尋結果第一項
+    if soup_1.select_one('[role] > a') == None:
+        # 查無結果則回傳 None
+        return None
+    url_2 = f'https://dict.idioms.moe.edu.tw/{soup_1.select_one("[role] > a").get("href")}'
+    response_2 = requests.get(url_2, headers=headers)
+    soup_2 = BeautifulSoup(response_2.text, "html.parser")
+
+    idiom_title = soup_1.select_one('[role] > a').getText()
+    idiom_desc = soup_2.select_one('[headers="th_mean"]').getText()
+    idiom_phonet_raw = soup_2.select('#row_phonetic nobr')
+    idiom_phonet = ''
+    for item in idiom_phonet_raw:
+        if '變' in item.getText():
+            idiom_phonet += '／ '
+        else:
+            idiom_phonet += f'`{item.getText()}` '
+    # 若取得項目為附錄，則可能無典故
+    if soup_2.select_one('[headers="th_annotate"]') == None:
+        idiom_story = None
+    else:
+        idiom_story = soup_2.select_one('[headers="th_annotate"]').getText()
+
+    return {'title': idiom_title, 'desc': idiom_desc, 'url': url_2, 'phonet': idiom_phonet, 'story': idiom_story}
+
+
 def get_random_wikipedia_article():
     response = requests.get(
         'https://zh.m.wikipedia.org/zh-tw/Special:%E9%9A%8F%E6%9C%BA%E9%A1%B5%E9%9D%A2')
