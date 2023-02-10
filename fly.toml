@@ -1,0 +1,8 @@
+# fly.toml file generated for black-suits-discord-bot on 2023-02-10T14:42:44+08:00
+
+app = "black-suits-discord-bot"
+kill_signal = "SIGINT"
+kill_timeout = 5
+processes = []
+
+[env]
